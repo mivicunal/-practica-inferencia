@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Práctica de Test de Hipótesis · Estudiantes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0}
+img{max-width:100%}
+
+/* Layout: misma familia visual que los laboratorios. Panel de configuración a la izquierda; a la derecha enunciado, datos, fórmulas y hoja de respuestas con comprobación. */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --sunken:#e9edf2; --line:#d5dbe3;
+  --fg:#14202e; --muted:#5a6878;
+  --accent:#0b5c7a; --accent-soft:#d9ebf1; --on-accent:#ffffff;
+  --e1:#b3303a; --e1-soft:#f8dfe1; --e2:#6a4c9c; --e2-soft:#ebe4f6;
+  --ok:#1f7a4d; --ok-soft:#dcf1e5; --bad:#b3303a; --bad-soft:#f8dfe1;
+  --warn:#8a6100; --warn-soft:#fbf0cf;
+  --display:"IBM Plex Serif",Georgia,serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f161e; --surface:#172029; --sunken:#1f2a35; --line:#2f3d4b;
+  --fg:#e6ecf2; --muted:#9aa8b7;
+  --accent:#5fb8d6; --accent-soft:#163a48; --on-accent:#08222c;
+  --e1:#f08089; --e1-soft:#42191d; --e2:#b79cf0; --e2-soft:#2c2342;
+  --ok:#5fc892; --ok-soft:#163626; --bad:#f08089; --bad-soft:#42191d;
+  --warn:#e3bb55; --warn-soft:#3a3013;
+  color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0f161e; --surface:#172029; --sunken:#1f2a35; --line:#2f3d4b;
+  --fg:#e6ecf2; --muted:#9aa8b7;
+  --accent:#5fb8d6; --accent-soft:#163a48; --on-accent:#08222c;
+  --e1:#f08089; --e1-soft:#42191d; --e2:#b79cf0; --e2-soft:#2c2342;
+  --ok:#5fc892; --ok-soft:#163626; --bad:#f08089; --bad-soft:#42191d;
+  --warn:#e3bb55; --warn-soft:#3a3013;
+  color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:28px 56px;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:600;text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:clamp(1.55rem,3.2vw,2.1rem)}
+h2{font-size:1.15rem}
+h3{font-size:.98rem}
+p{margin:0}
+.eyebrow{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header.case{display:flex;flex-direction:column;gap:14px}
+header.case > p{max-width:75ch}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs button{font:inherit;font-size:.95rem;font-weight:600;padding:9px 14px;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);cursor:pointer;margin-bottom:-1px}
+.tabs button:hover{color:var(--fg)}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.case-body{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start}
+.case-text{display:flex;flex-direction:column;gap:10px;min-width:0}
+.case-text p{max-width:70ch}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;border-left:3px solid var(--accent);padding-left:14px;font-size:.9rem}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.step h2{display:flex;align-items:center;gap:10px}
+.sn{font-family:var(--mono);font-size:.85rem;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:inline-grid;place-items:center;font-weight:600;flex:none}
+.items{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.item{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr);grid-template-areas:"q in";gap:6px 14px;align-items:center;padding-block:12px;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item.wide{grid-template-columns:minmax(0,1fr);grid-template-areas:"q" "in"}
+.item .q{grid-area:q;min-width:0}.item .in{grid-area:in;min-width:0}.item .fb{grid-area:fb}.item .rv{grid-area:rv;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.item .q small{display:block;color:var(--muted);font-size:.8rem}
+.opts button{white-space:normal;line-height:1.4}
+.res{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;color:var(--accent)}
+.rv .btn{padding:4px 10px;font-size:.8rem}
+.chk.seen{background:var(--warn-soft);color:var(--warn)}
+textarea{font:inherit;font-family:var(--mono);font-size:.82rem;width:100%;padding:8px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--fg);resize:vertical}
+label.btn{display:inline-block}
+.item input[type=text]{width:150px}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:22px;align-items:start}
+.controls{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:16px;max-height:calc(100vh - 24px);overflow-y:auto}
+.ctl{display:flex;flex-direction:column;gap:7px;min-width:0}
+.lab{font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.lab2{font-size:.86rem}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1 1 auto;font:inherit;font-size:.86rem;padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--sunken);color:var(--fg);cursor:pointer;text-align:center}
+.seg button:hover{border-color:var(--accent)}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.seg.col{flex-direction:column}
+.seg.col button{text-align:left}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=number],input[type=text]{font:inherit;font-family:var(--mono);padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--fg);width:110px;max-width:100%}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{font:inherit;font-size:.86rem;font-weight:600;padding:7px 12px;border-radius:7px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer}
+.btn:hover{background:var(--accent-soft)}
+.btn.solid{background:var(--accent);color:var(--on-accent)}
+.btn.ghost{border-color:var(--line);color:var(--fg)}
+.hint{font-size:.8rem;color:var(--muted)}
+.truth{border-top:1px dashed var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.sl{display:flex;flex-direction:column;gap:2px}
+.sl label{font-size:.86rem}
+.main{display:flex;flex-direction:column;gap:22px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.enun{font-size:1rem;max-width:75ch}
+.enun ol{margin:6px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:3px}
+#steps{display:flex;flex-direction:column;gap:22px}
+.givens{display:grid;background:var(--surface)!important;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.givens > div{background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.givens .k{font-size:.78rem;color:var(--muted)}
+.givens .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:1.05rem}
+.fgroup{display:flex;flex-direction:column;gap:6px;padding-block:6px;border-bottom:1px solid var(--line);min-width:0}
+.fgroup:last-child{border-bottom:0}
+.fgroup .t{font-weight:600;font-size:.92rem}
+.fgroup.e1 .t{color:var(--e1)}
+.fgroup.e2 .t{color:var(--e2)}
+.math{overflow-x:auto;overflow-y:hidden;padding-block:2px}
+.note{font-size:.88rem;border-radius:8px;padding:10px 12px;background:var(--sunken)}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.tablewrap{overflow-x:auto}
+table.ans{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+table.ans th{text-align:left;font-size:.76rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 8px 8px 0;border-bottom:1px solid var(--line)}
+table.ans td{padding:10px 8px 10px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+table.ans tr:last-child td{border-bottom:0}
+table.ans td.q{min-width:190px}
+table.ans td.q small{display:block;color:var(--muted);font-size:.8rem}
+.res{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500;min-width:110px;display:inline-block}
+.res.hid{color:var(--muted);letter-spacing:.2em}
+.chk{font-size:.82rem;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.chk.ok{background:var(--ok-soft);color:var(--ok)}
+.chk.bad{background:var(--bad-soft);color:var(--bad)}
+.score{font-size:.9rem;color:var(--muted)}
+footer{font-size:.8rem;color:var(--muted);max-width:80ch}
+mjx-container{color:var(--fg)}
+@media (max-width:900px){ .case-body{grid-template-columns:minmax(0,1fr)} .item{grid-template-columns:minmax(0,1fr);grid-template-areas:"q" "in"} .layout{grid-template-columns:minmax(0,1fr)} .controls{position:static;max-height:none} }
+.givens > div{box-shadow:0 0 0 1px var(--line)}
+@media (max-width:520px){ .math mjx-container[display="true"]{font-size:86%} .panel{padding:14px} .wrap{padding-inline:16px} }
+.members{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;align-items:center;max-width:520px;margin-block:6px}
+.members input[type=text]{width:100%}
+@media (max-width:520px){.members{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){ .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px} .tabs button{white-space:normal;padding:8px 4px;font-size:.8rem;line-height:1.25;text-align:center} }
+</style>
+
+
+</head>
+<body>
+<div class="wrap">
+  <header class="case">
+    <span class="eyebrow">EAA1520 Inferencia Estadística · Capítulo 4: Test de hipótesis</span>
+    <h1>El servicio de una app de delivery de supermercado</h1>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-1" data-t="1">1 · Test de proporción</button>
+      <button type="button" role="tab" id="tab-2" data-t="2">2 · Test de media</button>
+      <button type="button" role="tab" id="tab-3" data-t="3">3 · Comparar proporciones</button>
+    </div>
+    <div class="case-body" id="case-1">
+      <div class="case-text">
+        <p>Una app de delivery de supermercado en Santiago promete entregar cada pedido en un tiempo establecido; si llega tarde, el cliente recibe un cupón. Históricamente, la proporción de pedidos que llega con retraso es de <b>15%</b>, pero se cree que este número cambió.</p>
+        <p>Con un nivel de significancia de <b>5%</b>, ¿hay evidencia de que la proporción de pedidos que llega con retraso es distinta de 15%?</p>
+      </div>
+    </div>
+    <div class="case-body" id="case-mu" hidden>
+      <div class="case-text">
+        <p>Una app de delivery de supermercado en Santiago promete entregar cada pedido en un tiempo establecido. Se quiere evaluar si el <b>tiempo medio de entrega</b> de los pedidos es <b>menor a 45 minutos</b>.</p>
+        <p>Con un nivel de significancia de <b>1%</b>, ¿hay evidencia de que el tiempo medio de entrega es menor a 45 minutos?</p>
+      </div>
+    </div>
+    <div class="case-body" id="case-2" hidden>
+      <div class="case-text">
+        <p>Operaciones evalúa un <b>nuevo algoritmo de ruteo</b>. Durante un piloto, cada pedido se asignó al azar al ruteo actual (población \(X\), muestra de tamaño \(n\)) o al ruteo nuevo (población \(Y\), muestra de tamaño \(m\)).</p>
+        <p>Con un nivel de significancia de <b>5%</b>, ¿hay evidencia de que el ruteo nuevo reduce la tasa de atrasos? Una diferencia positiva \(\pi_X-\pi_Y>0\) significa que con el ruteo nuevo llegan tarde menos pedidos.</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="note warn" id="nojs"><b>La práctica no se cargó.</b> Esta vista muestra el archivo, pero no ejecuta la práctica (pasa en la vista previa de Archivos del iPhone, de WhatsApp o del correo). Ábrelo con el botón de compartir → <b>Abrir en Safari</b> o <b>Abrir con Chrome</b>, o desde el enlace que entregó la profesora.</div>
+  <div class="layout">
+    <aside class="controls" id="ctl-1" aria-label="Configuración, test de proporción">
+      <div class="ctl"><span class="lab">Parámetro</span><p class="lab2">Proporción de pedidos atrasados π · estadístico Z</p></div>
+      <div class="ctl"><span class="lab">Planteamiento</span><p class="lab2">Históricamente el 15% de los pedidos llega con retraso, pero se cree que este número cambió.</p></div>
+      <div class="ctl"><span class="lab">Nivel de significancia α</span>
+        <p class="lab2">α = 0,05</p></div>
+      <p class="hint" id="t1-n"></p>
+    </aside>
+
+    <aside class="controls" id="ctl-2" aria-label="Configuración, test de media" hidden>
+      <div class="ctl"><span class="lab">Parámetro</span><p class="lab2">Tiempo medio de entrega μ</p></div>
+      <div class="ctl"><span class="lab">Planteamiento</span><p class="lab2">Se quiere evaluar si el tiempo medio de entrega de los pedidos es menor a 45 minutos.</p></div>
+      <div class="ctl"><span class="lab">Estadístico del test</span>
+        <div class="seg col" id="t2-mmu">
+          <button type="button" data-v="zknown">σ conocida · Z</button>
+          <button type="button" data-v="t">σ desconocida · T de Student</button>
+          <button type="button" data-v="zlarge">Cualquier población, n grande · Z</button>
+        </div></div>
+      <div class="ctl"><span class="lab">Nivel de significancia α</span>
+        <p class="lab2">α = 0,01</p></div>
+      <p class="hint" id="t2-n"></p>
+    </aside>
+
+    <aside class="controls" id="ctl-3" aria-label="Configuración, comparar proporciones" hidden>
+      <div class="ctl"><span class="lab">Parámetro</span><p class="lab2">Diferencia de proporciones de atrasos πX − πY · estadístico Z</p></div>
+      <div class="ctl"><span class="lab">Pregunta de la gerencia</span>
+        <div class="seg" id="t3-alt"><button type="button" data-v="gt">¿El nuevo mejora?</button><button type="button" data-v="lt">¿El nuevo empeora?</button><button type="button" data-v="ne">¿Son distintos?</button></div></div>
+      <div class="ctl"><span class="lab">Nivel de significancia α</span>
+        <p class="lab2">α = 0,05</p></div>
+      <p class="hint" id="t3-n"></p>
+    </aside>
+
+    <div class="main" id="main">
+      <div id="steps"></div>
+      <section class="panel" id="save">
+        <h2 id="save-title">Guardar respuestas</h2>
+        <p class="hint" id="progress"></p>
+        <div class="row"><button type="button" class="btn solid" id="b-save">Guardar respuestas</button></div>
+        <p class="hint" id="save-status" aria-live="polite"></p>
+        <div id="final" hidden>
+          <div class="fgroup">
+            <span class="t">Entregar</span>
+            <p>Cuando hayas guardado las tres partes, escribe los integrantes del grupo, el nombre del archivo y descarga la entrega. El archivo guarda los datos del ejercicio y sus respuestas. Súbanlo a la tarea en Canvas.</p>
+            <p class="hint" id="parts-status"></p>
+            <div class="members">
+              <label class="lab2" for="st-m1">Integrante 1</label><input type="text" id="st-m1" autocomplete="off">
+              <label class="lab2" for="st-m2">Integrante 2</label><input type="text" id="st-m2" autocomplete="off">
+              <label class="lab2" for="st-m3">Integrante 3</label><input type="text" id="st-m3" autocomplete="off">
+              <label class="lab2" for="st-file">Nombre del archivo</label><div class="row" style="gap:6px;flex-wrap:nowrap"><input type="text" id="st-file" placeholder="entrega_grupo" autocomplete="off"><span class="hint">.csv</span></div>
+            </div>
+            <div class="row"><button type="button" class="btn solid" id="b-dl">Descargar entrega</button></div>
+            <p class="hint" id="send-status" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer>Datos simulados con fines docentes; no corresponden a una empresa en particular. Las respuestas se calculan con los valores muestrales redondeados que aparecen en el enunciado. Notación según el Capítulo 4 del curso.</footer>
+</div>
+
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'},options:{enableMenu:false}};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script>
+/* ================= Funciones estadísticas ================= */
+function lgamma(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];let y=x,t=x+5.5;t-=(x+.5)*Math.log(t);let s=1.000000000190015;for(let j=0;j<6;j++)s+=c[j]/++y;return -t+Math.log(2.5066282746310005*s/x)}
+function gammp(a,x){if(x<=0)return 0;if(x<a+1){let ap=a,sum=1/a,del=sum;for(let i=0;i<500;i++){ap++;del*=x/ap;sum+=del;if(Math.abs(del)<Math.abs(sum)*1e-13)break}return sum*Math.exp(-x+a*Math.log(x)-lgamma(a))}
+  let b=x+1-a,c=1e300,d=1/b,h=d;for(let i=1;i<500;i++){const an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;c=b+an/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<1e-13)break}
+  return 1-Math.exp(-x+a*Math.log(x)-lgamma(a))*h}
+function betacf(a,b,x){let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;if(Math.abs(d)<1e-300)d=1e-300;d=1/d;let h=d;for(let m=1;m<400;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<1e-300)d=1e-300;c=1+aa/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<1e-300)d=1e-300;c=1+aa/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<1e-13)break}return h}
+function betai(a,b,x){if(x<=0)return 0;if(x>=1)return 1;const bt=Math.exp(lgamma(a+b)-lgamma(a)-lgamma(b)+a*Math.log(x)+b*Math.log(1-x));return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b}
+function pnorm(z){if(!isFinite(z))return z>0?1:0;return z<0?1-pnorm(-z):0.5+0.5*gammp(0.5,z*z/2)}
+function pt(t,v){const p=0.5*betai(v/2,0.5,v/(v+t*t));return t>0?1-p:p}
+function bisect(f,lo,hi,p){for(let i=0;i<90;i++){const m=(lo+hi)/2;if(f(m)<p)lo=m;else hi=m}return (lo+hi)/2}
+const qnorm=p=>bisect(pnorm,-9,9,p);
+const qt=(p,v)=>bisect(t=>pt(t,v),-200,200,p);
+const dnorm=z=>Math.exp(-z*z/2)/Math.sqrt(2*Math.PI);
+const dt=(t,v)=>Math.exp(lgamma((v+1)/2)-lgamma(v/2))/Math.sqrt(v*Math.PI)*Math.pow(1+t*t/v,-(v+1)/2);
+function dbinom(n,p){const a=new Array(n+1).fill(0);if(p<=0){a[0]=1;return a}if(p>=1){a[n]=1;return a}const lp=Math.log(p),lq=Math.log(1-p),ln1=lgamma(n+1);for(let k=0;k<=n;k++)a[k]=Math.exp(ln1-lgamma(k+1)-lgamma(n-k+1)+k*lp+(n-k)*lq);return a}
+function tailGE(a,u){let s=0;for(let k=Math.max(u,0);k<a.length;k++)s+=a[k];return Math.min(1,s)}
+function tailLE(a,l){let s=0;for(let k=0;k<=Math.min(l,a.length-1);k++)s+=a[k];return Math.min(1,s)}
+function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function rnorm(r){const u=Math.max(r(),1e-12),v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function mv(a){const n=a.length;let s=0;for(const v of a)s+=v;const m=s/n;let ss=0;for(const v of a)ss+=(v-m)*(v-m);return{n,m,S2:n>1?ss/(n-1):0,sum:s}}
+const welchG=(vx,vy,n,m)=>Math.pow(vx/n+vy/m,2)/(Math.pow(vx/n,2)/(n-1)+Math.pow(vy/m,2)/(m-1));
+const clampP=v=>Math.min(0.999,Math.max(0.001,v));
+
+/* ================= Caso y estado ================= */
+const SIG=9,N_MES=120000,CUPON=2500,COSTO_MIN=90,LIC=8e6,U_MIN=N_MES*COSTO_MIN,U_PI=N_MES*CUPON;
+const ST={part:1,mcSeed:1,
+  p1:{param:'pi',mpi:'z',mmu:'t',alt:'gt',alpha:0.05,n:100,seed:1,t0:{pi:0.15,mu:35},truth:{pi:0.181,mu:36.8}},
+  p2:{param:'mu',mmu:'pooled',alt:'gt',alpha:0.05,n:100,m:100,seed:1,d0:{pi:0,mu:0},truth:{muX:36.8,muY:35,sX:9,sY:9,piX:0.18,piY:0.12}}};
+
+function cfg(){
+  if(ST.part===1){const P=ST.p1;return{part:1,param:P.param,method:P.param==='pi'?P.mpi:P.mmu,alt:P.alt,alpha:P.alpha,n:P.n,m:0,theta0:P.t0[P.param],tr:{v:P.truth[P.param],s:SIG},seed:P.seed}}
+  const P=ST.p2;return{part:2,param:P.param,method:P.param==='pi'?'z':P.mmu,alt:P.alt,alpha:P.alpha,n:P.n,m:P.m,theta0:P.d0[P.param],tr:Object.assign({},P.truth),seed:P.seed}}
+function theta1(c,tr){tr=tr||c.tr;if(c.part===1)return tr.v;return c.param==='mu'?tr.muX-tr.muY:tr.piX-tr.piY}
+function trAt(c,th){if(c.part===1)return{v:c.param==='pi'?clampP(th):th,s:SIG};const t=Object.assign({},c.tr);if(c.param==='mu')t.muY=t.muX-th;else t.piY=clampP(t.piX-th);return t}
+function inNull(c,th){const t0=c.theta0,e=1e-9;return c.alt==='gt'?th<=t0+e:c.alt==='lt'?th>=t0-e:Math.abs(th-t0)<e}
+function sym(c){
+  if(c.part===1)return c.param==='pi'
+    ?{th:'\\pi',th0:'\\pi_0',th1:'\\pi_1',est:'p',thU:'π',th0U:'π₀',estU:'p',unit:'',dec:3}
+    :{th:'\\mu',th0:'\\mu_0',th1:'\\mu_1',est:'\\bar y',thU:'μ',th0U:'μ₀',estU:'ȳ',unit:' min',dec:2};
+  return c.param==='pi'
+    ?{th:'\\pi_X-\\pi_Y',th0:'\\delta_0',th1:'\\delta_1',est:'p_X-p_Y',thU:'πX − πY',th0U:'δ₀',estU:'pX − pY',unit:'',dec:3}
+    :{th:'\\mu_X-\\mu_Y',th0:'\\delta_0',th1:'\\delta_1',est:'\\bar x-\\bar y',thU:'μX − μY',th0U:'δ₀',estU:'x̄ − ȳ',unit:' min',dec:2}}
+
+/* ================= Formato ================= */
+const f=(x,d)=>{if(!isFinite(x))return x>0?'∞':'−∞';let s=(Math.abs(x)<0.5*Math.pow(10,-d)?0:x).toFixed(d);return s.replace('-','−').replace('.',',')};
+const tx=(x,d)=>{let s=(Math.abs(x)<0.5*Math.pow(10,-d)?0:x).toFixed(d);return s.replace('.','{,}')};
+const tq=x=>String(+x.toFixed(4)).replace('.','{,}');
+const fq=x=>String(+x.toFixed(4)).replace('.',',');
+const money=x=>'$'+f(x/1e6,1)+' millones';
+const pct=(x,d)=>f(100*x,d===undefined?1:d)+'%';
+const R=String.raw;
+const ALT={gt:['>','>'],lt:['<','<'],ne:['\\neq','≠']};
+
+/* ================= Muestreo ================= */
+function draw(c,tr,r){
+  const gN=(k,mu,s)=>{const a=new Array(k);for(let i=0;i<k;i++)a[i]=mu+s*rnorm(r);return a};
+  const gB=(k,p)=>{const a=new Array(k);for(let i=0;i<k;i++)a[i]=r()<p?1:0;return a};
+  if(c.part===1)return c.param==='pi'?{y:gB(c.n,tr.v)}:{y:gN(c.n,tr.v,tr.s)};
+  return c.param==='pi'?{x:gB(c.n,tr.piX),y:gB(c.m,tr.piY)}:{x:gN(c.n,tr.muX,tr.sX),y:gN(c.m,tr.muY,tr.sY)};
+}
+
+/* ================= Diseño del test (no depende de la muestra) ================= */
+function design(c,alphaOv,nMul){
+  const a=alphaOv||c.alpha,two=c.alt==='ne',pq=two?1-a/2:1-a,t0=c.theta0,k=nMul||1,n=c.n*k,m=c.m*k,tr=c.tr;
+  if(c.part===1&&c.param==='pi'&&c.method==='binom'){
+    const arr0=dbinom(n,t0),aa=two?a/2:a;let U=null,L=null;
+    if(c.alt!=='lt'){U=n+1;while(U-1>=0&&tailGE(arr0,U-1)<=aa)U--}
+    if(c.alt!=='gt'){L=-1;while(L+1<=n&&tailLE(arr0,L+1)<=aa)L++}
+    const rej=th=>{const ar=dbinom(n,th);return (U!==null&&U<=n?tailGE(ar,U):0)+(L!==null&&L>=0?tailLE(ar,L):0)};
+    return{kind:'binom',n,U,L,arr0,rej,alphaReal:rej(t0),pq,alpha:a};
+  }
+  let q,df=null,se0,se1,approx=true,note='',se0Tex,se1Tex;
+  if(c.part===1&&c.param==='pi'){
+    q=qnorm(pq);const s0=Math.sqrt(t0*(1-t0)/n);se0=()=>s0;se1=th=>Math.sqrt(th*(1-th)/n);
+    se0Tex=R`\sqrt{\pi_0(1-\pi_0)/n}`;se1Tex=R`\sqrt{\pi_1(1-\pi_1)/n}`;
+    note='β se calcula con la aproximación Normal de p (TLC).';
+  }else if(c.part===1){
+    const s=tr.s/Math.sqrt(n);se0=se1=()=>s;se0Tex=se1Tex=R`\sigma/\sqrt{n}`;
+    if(c.method==='zknown'){q=qnorm(pq);approx=false}
+    else if(c.method==='t'){df=n-1;q=qt(pq,df);note='En el test T, S es aleatoria. Para calcular β se reemplaza S por σ = 9 min y se usa la aproximación Normal; el valor exacto requiere la t no central.'}
+    else{q=qnorm(pq);note='Para calcular β se reemplaza S por σ = 9 min.'}
+  }else if(c.param==='mu'){
+    const vX=tr.sX*tr.sX,vY=tr.sY*tr.sY,sT=Math.sqrt(vX/n+vY/m);se1=()=>sT;se1Tex=R`\sqrt{\sigma_X^2/n+\sigma_Y^2/m}`;
+    if(c.method==='known'){q=qnorm(pq);se0=()=>sT;se0Tex=se1Tex;approx=false}
+    else if(c.method==='pooled'){df=n+m-2;q=qt(pq,df);const sp=Math.sqrt(((n-1)*vX+(m-1)*vY)/(n+m-2))*Math.sqrt(1/n+1/m);se0=()=>sp;se0Tex=R`\sigma_p\sqrt{1/n+1/m}`;note='Para calcular β se reemplazan SX y SY por los σ del escenario (aproximación Normal).'}
+    else if(c.method==='welch'){df=Math.floor(welchG(vX,vY,n,m));q=qt(pq,df);se0=()=>sT;se0Tex=se1Tex;note='Para calcular β se reemplazan SX y SY por los σ del escenario (aproximación Normal).'}
+    else{q=qnorm(pq);se0=()=>sT;se0Tex=se1Tex;note='Para calcular β se reemplazan SX y SY por los σ del escenario.'}
+  }else{
+    q=qnorm(pq);const pX=tr.piX;
+    se1=th=>{const pY=clampP(pX-th);return Math.sqrt(pX*(1-pX)/n+pY*(1-pY)/m)};
+    se1Tex=R`\sqrt{\pi_X(1-\pi_X)/n+\pi_Y(1-\pi_Y)/m}`;
+    if(t0===0){se0=th=>{const pY=clampP(pX-th),pb=(n*pX+m*pY)/(n+m);return Math.sqrt(pb*(1-pb)*(1/n+1/m))};se0Tex=R`\sqrt{\bar\pi(1-\bar\pi)(1/n+1/m)}`}
+    else{se0=se1;se0Tex=se1Tex}
+    note='β se calcula con la aproximación Normal de pX − pY, evaluando las proporciones en el escenario.';
+  }
+  const crit=th=>{const s=se0(th);return[t0-q*s,t0+q*s]};
+  const rej=th=>{const[lo,hi]=crit(th),s=se1(th);if(!(s>1e-12))return((c.alt!=='lt'&&th>hi)||(c.alt!=='gt'&&th<lo))?1:0;
+    let p=0;if(c.alt!=='lt')p+=1-pnorm((hi-th)/s);if(c.alt!=='gt')p+=pnorm((lo-th)/s);return p};
+  return{kind:'cont',q,df,se0,se1,crit,rej,approx,note,se0Tex,se1Tex,pq,alpha:a,n,m};
+}
+
+
+/* ================= Textos de negocio ================= */
+function h1Text(c){const t0=c.theta0,A=c.alt;
+  if(c.part===1){
+    if(c.param==='pi'){const v=pct(t0);return{gt:'la tasa de atrasos supera el '+v,lt:'la tasa de atrasos está bajo el '+v,ne:'la tasa de atrasos es distinta del '+v}[A]}
+    const v=f(t0,1)+' min';return{gt:'el tiempo medio de entrega supera los '+v,lt:'el tiempo medio de entrega está bajo los '+v,ne:'el tiempo medio de entrega es distinto de '+v}[A]}
+  if(c.param==='mu'){if(t0===0)return{gt:'el ruteo nuevo reduce el tiempo medio de entrega',lt:'el ruteo nuevo aumenta el tiempo medio de entrega',ne:'los dos ruteos tienen tiempos medios distintos'}[A];
+    const v=f(t0,2)+' min';return{gt:'el ruteo nuevo reduce el tiempo medio en más de '+v,lt:'la reducción del tiempo medio es menor que '+v,ne:'la diferencia de tiempos medios es distinta de '+v}[A]}
+  if(t0===0)return{gt:'el ruteo nuevo reduce la tasa de atrasos',lt:'el ruteo nuevo aumenta la tasa de atrasos',ne:'los dos ruteos tienen tasas de atraso distintas'}[A];
+  const v=f(100*t0,1)+' puntos';return{gt:'el ruteo nuevo reduce la tasa de atrasos en más de '+v,lt:'la reducción de atrasos es menor que '+v,ne:'la diferencia de tasas de atraso es distinta de '+v}[A]}
+
+/* ================= Resumen muestral redondeado (lo que ve el alumno) ================= */
+const r2=x=>Math.round(x*100)/100;
+function summarize(c,d){
+  if(c.part===1&&c.param==='pi'){let x=0;for(const v of d.y)x+=v;return{x}}
+  if(c.part===1){const s=mv(d.y);return{ybar:r2(s.m),S:r2(Math.sqrt(s.S2))}}
+  if(c.param==='mu'){const X=mv(d.x),Y=mv(d.y);return{xbar:r2(X.m),ybar:r2(Y.m),SX:r2(Math.sqrt(X.S2)),SY:r2(Math.sqrt(Y.S2))}}
+  let x=0,y=0;for(const v of d.x)x+=v;for(const v of d.y)y+=v;return{x,y}}
+function solve(c,sm,D){
+  const a=c.alpha,t0=c.theta0,n=c.n,m=c.m,two=c.alt==='ne',pq=two?1-a/2:1-a,o={};
+  if(c.part===1&&c.param==='pi'&&c.method==='binom'){
+    o.kind='binom';o.stat=sm.x;o.est=sm.x/n;const pGE=tailGE(D.arr0,sm.x),pLE=tailLE(D.arr0,sm.x);
+    o.pval=c.alt==='gt'?pGE:c.alt==='lt'?pLE:Math.min(1,2*Math.min(pGE,pLE));
+    o.reject=(D.U!==null&&sm.x>=D.U)||(D.L!==null&&sm.x<=D.L);return o}
+  let est,se,dist={t:'z'};
+  if(c.part===1&&c.param==='pi'){est=sm.x/n;se=Math.sqrt(t0*(1-t0)/n)}
+  else if(c.part===1){est=sm.ybar;if(c.method==='zknown')se=SIG/Math.sqrt(n);else{se=sm.S/Math.sqrt(n);if(c.method==='t')dist={t:'t',df:n-1}}}
+  else if(c.param==='mu'){est=sm.xbar-sm.ybar;const vx=sm.SX*sm.SX,vy=sm.SY*sm.SY;
+    if(c.method==='known')se=Math.sqrt(c.tr.sX*c.tr.sX/n+c.tr.sY*c.tr.sY/m);
+    else if(c.method==='pooled'){o.Sp=Math.sqrt(((n-1)*vx+(m-1)*vy)/(n+m-2));se=o.Sp*Math.sqrt(1/n+1/m);dist={t:'t',df:n+m-2}}
+    else{se=Math.sqrt(vx/n+vy/m);if(c.method==='welch'){o.g=welchG(vx,vy,n,m);dist={t:'t',df:Math.max(1,Math.floor(o.g))}}}}
+  else{const pX=sm.x/n,pY=sm.y/m;est=pX-pY;se=Math.sqrt(pX*(1-pX)/n+pY*(1-pY)/m)}
+  o.kind='cont';o.est=est;o.se=se;o.dist=dist;o.stat=se>0?(est-t0)/se:0;
+  const F=dist.t==='z'?pnorm:(v=>pt(v,dist.df));o.q=dist.t==='z'?qnorm(pq):qt(pq,dist.df);
+  o.pval=c.alt==='gt'?1-F(o.stat):c.alt==='lt'?F(o.stat):Math.min(1,2*(1-F(Math.abs(o.stat))));
+  o.reject=c.alt==='gt'?o.stat>o.q:c.alt==='lt'?o.stat<-o.q:Math.abs(o.stat)>o.q;
+  return o}
+
+/* ================= Estado por pestaña ================= */
+const $=id=>document.getElementById(id);
+let mjq=Promise.resolve();
+function typeset(els){if(window.MathJax&&MathJax.typesetPromise){mjq=mjq.then(()=>{MathJax.typesetClear(els);return MathJax.typesetPromise(els)}).catch(()=>{})}}
+function setSeg(id,val){document.querySelectorAll('#'+id+' button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===String(val))))}
+const clone=o=>JSON.parse(JSON.stringify(o));
+const CFG={
+  1:{part:1,param:'pi',method:'z',alt:'ne',alpha:0.05,n:100,m:0,theta0:0.15,tr:{v:0.20,s:9},seed:1},
+  2:{part:1,param:'mu',method:'t',alt:'lt',alpha:0.01,n:50,m:0,theta0:45,tr:{v:43,s:9},seed:1},
+  3:{part:2,param:'pi',method:'z',alt:'gt',alpha:0.05,n:150,m:150,theta0:0,tr:{muX:36.8,muY:35,sX:9,sY:9,piX:0.18,piY:0.12},seed:1}};
+const TABNAME={1:'Test de proporción',2:'Test de media',3:'Comparar proporciones'};
+let TAB=1,CUR=null,ITEMS={};
+const WORK={1:{ans:{},draft:{},key:null,dirty:false},2:{ans:{},draft:{},key:null,dirty:false},3:{ans:{},draft:{},key:null,dirty:false}};
+const SAVED={};
+const W=()=>WORK[TAB];
+
+function computeCase(c){
+  const S=sym(c),D=design(c),r=rng(c.seed*7919+c.n*13+c.m*17+(c.param==='pi'?1:2)+c.part*101);
+  const d=draw(c,c.tr,r),sm=summarize(c,d),T=solve(c,sm,D),th1=theta1(c),H0=inNull(c,th1);
+  return{c,S,D,T,th1,H0,sm};
+}
+function syncControls(){
+  [1,2,3].forEach(k=>{const t=$('tab-'+k);t.setAttribute('aria-selected',String(TAB===k));t.textContent=k+' · '+TABNAME[k]+(SAVED[k]?' ✓':'');$('ctl-'+k).hidden=TAB!==k});
+  $('case-1').hidden=TAB!==1;$('case-mu').hidden=TAB!==2;$('case-2').hidden=TAB!==3;
+  const c=CFG[TAB];
+  if(TAB===1){$('t1-n').textContent='Muestra de n = '+c.n+' pedidos.'}
+  if(TAB===2){setSeg('t2-mmu',c.method);$('t2-n').textContent='Muestra de n = '+c.n+' pedidos.'}
+  if(TAB===3){setSeg('t3-alt',c.alt);
+    $('t3-n').textContent='Muestras de n = '+c.n+' pedidos (ruteo actual) y m = '+c.m+' pedidos (ruteo nuevo).'}
+}
+function render(){
+  const cur=computeCase(clone(CFG[TAB]));syncControls();
+  const key=JSON.stringify([cur.c,cur.sm]);if(W().key!==key){if(W().key!==null){W().ans={};W().draft={}}W().key=key}
+  CUR=cur;renderSteps();renderSave();
+}
+
+/* ---------- Fórmulas teóricas ---------- */
+function theory(cur){
+  const{c,S,D}=cur,isB=D.kind==='binom';let st,L='Z',isT=false;
+  if(c.part===1&&c.param==='pi'){if(isB){L='X';st=R`\[X=\sum_{i=1}^{n}Y_i\ \overset{H_0}{\sim}\ \text{Bin}(n,\pi_0)\]`}else st=R`\[Z=\frac{p-\pi_0}{\sqrt{\pi_0(1-\pi_0)/n}}\ \overset{H_0}{\underset{aprox}{\sim}}\ N(0,1)\]\[p=\frac{x}{n}\]`}
+  else if(c.part===1){if(c.method==='zknown')st=R`\[Z=\frac{\bar Y-\mu_0}{\sigma/\sqrt n}\ \overset{H_0}{\sim}\ N(0,1)\]`;else if(c.method==='t'){isT=true;L='T';st=R`\[T=\frac{\bar Y-\mu_0}{S/\sqrt n}\ \overset{H_0}{\sim}\ t(n-1)\]`}else st=R`\[Z=\frac{\bar Y-\mu_0}{S/\sqrt n}\ \overset{H_0}{\underset{aprox}{\sim}}\ N(0,1)\]`}
+  else if(c.param==='mu'){
+    if(c.method==='known')st=R`\[Z=\frac{(\bar X-\bar Y)-\delta_0}{\sqrt{\frac{\sigma_X^2}{n}+\frac{\sigma_Y^2}{m}}}\ \overset{H_0}{\sim}\ N(0,1)\]`;
+    else if(c.method==='pooled'){isT=true;L='T';st=R`\[T=\frac{(\bar X-\bar Y)-\delta_0}{S_p\sqrt{\frac1n+\frac1m}}\ \overset{H_0}{\sim}\ t(n+m-2)\]\[S_p^2=\frac{(n-1)S_X^2+(m-1)S_Y^2}{n+m-2}\]`}
+    else if(c.method==='welch'){isT=true;L='T';st=R`\[T=\frac{(\bar X-\bar Y)-\delta_0}{\sqrt{\frac{S_X^2}{n}+\frac{S_Y^2}{m}}}\ \overset{H_0}{\underset{aprox}{\sim}}\ t(g)\]\[g=\frac{\left(\frac{S_X^2}{n}+\frac{S_Y^2}{m}\right)^2}{\frac{(S_X^2/n)^2}{n-1}+\frac{(S_Y^2/m)^2}{m-1}}\]`}
+    else st=R`\[Z=\frac{(\bar X-\bar Y)-\delta_0}{\sqrt{\frac{S_X^2}{n}+\frac{S_Y^2}{m}}}\ \overset{H_0}{\underset{aprox}{\sim}}\ N(0,1)\]`}
+  else st=R`\[Z=\frac{p_X-p_Y}{\sqrt{\frac{p_X(1-p_X)}{n}+\frac{p_Y(1-p_Y)}{m}}}\ \overset{H_0}{\underset{aprox}{\sim}}\ N(0,1)\]`;
+  const A=c.alt,l=L.toLowerCase(),qq=isT?(A==='ne'?R`t_{1-\alpha/2,\,\nu}`:R`t_{1-\alpha,\,\nu}`):(A==='ne'?R`z_{1-\alpha/2}`:R`z_{1-\alpha}`);
+  let e1=isB?R`\[\alpha_{real}=P(\text{error tipo I})=P(\text{rechazar }H_0\mid H_0)=P(X\in RC\mid\pi=\pi_0)\]`:R`\[\begin{aligned}\alpha&=P(\text{error tipo I})\\&=P(\text{rechazar }H_0\mid H_0\ \text{verdadera})\end{aligned}\]`,e2,notes=[],F2=null;
+  if(isB){
+    e2=A==='gt'?R`\[\beta(\pi_1)=P(\text{error tipo II})=P(X\le c\mid\pi=\pi_1)=\text{Bin}(c;\,n,\pi_1)\]`:A==='lt'?R`\[\beta(\pi_1)=P(\text{error tipo II})=P(X\ge c\mid\pi=\pi_1)=1-\text{Bin}(c-1;\,n,\pi_1)\]`:R`\[\beta(\pi_1)=P(\text{error tipo II})=P(c_1\le X\le c_2\mid\pi=\pi_1)\]`;
+  }else{
+    const E=S.est,T1=S.th1,Th=S.th;
+    const cdef=A==='gt'?R`c^{*}=${S.th0}+${qq}\cdot ${D.se0Tex}`:A==='lt'?R`c^{*}=${S.th0}-${qq}\cdot ${D.se0Tex}`:R`\begin{aligned}c_1^{*}&=${S.th0}-${qq}\cdot ${D.se0Tex}\\c_2^{*}&=${S.th0}+${qq}\cdot ${D.se0Tex}\end{aligned}`;
+    const bf=A==='gt'?R`\beta(${T1})=\Phi\!\left(\frac{c^{*}-${T1}}{${D.se1Tex}}\right)`:A==='lt'?R`\beta(${T1})=1-\Phi\!\left(\frac{c^{*}-${T1}}{${D.se1Tex}}\right)`:R`\begin{aligned}\beta(${T1})=&\ \Phi\!\left(\frac{c_2^{*}-${T1}}{${D.se1Tex}}\right)\\&-\Phi\!\left(\frac{c_1^{*}-${T1}}{${D.se1Tex}}\right)\end{aligned}`;
+    F2={cdef,bf};
+    e2=R`\[\begin{aligned}\beta(${T1})&=P(\text{error tipo II})\\&=P(\text{no rechazar }H_0\mid H_0\ \text{falsa})\\&=P(\text{no rechazar }H_0\mid ${Th}=${T1})\end{aligned}\]`;
+    if(c.part===1&&c.param==='mu'&&c.method!=='zknown')notes.push('Para β, reemplace S por σ = 9 min'+(c.method==='t'?' y mantenga el percentil t.':'.'));
+    if(c.part===2&&c.param==='mu'&&c.method==='pooled')notes.push(R`Para β use \(\sigma_p^2=\frac{(n-1)\sigma_X^2+(m-1)\sigma_Y^2}{n+m-2}\) con los σ dados.`);
+    if(c.part===2&&c.param==='mu'&&c.method==='welch')notes.push('Para β, calcule g con los σ dados en vez de SX y SY.');
+    if(c.part===2&&c.param==='mu'&&c.method==='zlarge')notes.push('Para β, reemplace SX y SY por los σ dados.');
+    if(c.part===2&&c.param==='pi'&&c.theta0===0)notes.push(R`Para β, \(\bar\pi=\frac{n\pi_X+m\pi_Y}{n+m}\) se evalúa con los valores verdaderos dados.`);
+    if(c.part===2&&c.param==='pi'&&c.theta0!==0)notes.push(R`Para β, el denominador de \(c^{*}\) se evalúa en \(\pi_X\) y \(\pi_Y=\pi_X-\delta_0\); el de β, en los valores verdaderos dados.`);
+  }
+  return{st,L,l,isT,isB,e1,e2,notes,F2};
+}
+
+/* ---------- Pasos ---------- */
+function buildSteps(cur){
+  const{c,S,D,T,th1,H0,sm}=cur,F=theory(cur),A=c.alt,t0=c.theta0,dec=S.dec,a=c.alpha,steps=[];
+  const it=o=>o;
+  /* 1 · caso y muestra */
+  let ctx,G=[];const add=(k,v)=>G.push('<div><span class="k">'+k+'</span><span class="v">'+v+'</span></div>');
+  if(c.part===1&&c.param==='pi'){ctx='Operaciones auditó <b>'+c.n+' pedidos</b> elegidos al azar y registró cuántos llegaron tarde.';add('Tamaño de muestra n',c.n);add('Pedidos atrasados x',sm.x);add('Proporción muestral p',f(sm.x/c.n,3))}
+  else if(c.part===1){ctx='Operaciones auditó <b>'+c.n+' pedidos</b> elegidos al azar y midió su tiempo de entrega.'+(c.method==='zknown'?' Por registros históricos, la desviación estándar del tiempo de entrega es conocida: σ = 9 min.':'');add('Tamaño de muestra n',c.n);add('Tiempo promedio ȳ',f(sm.ybar,2)+' min');if(c.method==='zknown')add('σ conocida','9 min');else add('Desviación estándar S',f(sm.S,2)+' min')}
+  else if(c.param==='mu'){ctx='En el piloto se midió el tiempo de entrega de <b>n = '+c.n+'</b> pedidos con el ruteo actual (X) y <b>m = '+c.m+'</b> con el ruteo nuevo (Y), asignados al azar.'+(c.method==='known'?' Las desviaciones estándar se consideran conocidas por registros históricos.':'');
+    add('n (ruteo actual)',c.n);add('x̄',f(sm.xbar,2)+' min');if(c.method==='known')add('σX conocida',f(c.tr.sX,1)+' min');else add('SX',f(sm.SX,2)+' min');
+    add('m (ruteo nuevo)',c.m);add('ȳ',f(sm.ybar,2)+' min');if(c.method==='known')add('σY conocida',f(c.tr.sY,1)+' min');else add('SY',f(sm.SY,2)+' min')}
+  else{ctx='En el piloto se registró cuántos pedidos llegaron tarde en cada grupo: <b>n = '+c.n+'</b> con el ruteo actual (X) y <b>m = '+c.m+'</b> con el ruteo nuevo (Y), asignados al azar.';
+    add('n (ruteo actual)',c.n);add('Atrasados x',sm.x);add('pX',f(sm.x/c.n,3));add('m (ruteo nuevo)',c.m);add('Atrasados y',sm.y);add('pY',f(sm.y/c.m,3))}
+  steps.push({t:'El caso y la muestra',intro:'<p class="enun">'+ctx+'</p><div class="givens">'+G.join('')+'</div>',items:[]});
+
+  /* 2 · hipótesis */
+  const hy=k=>R`\(H_0:\ ${S.th}=${tq(t0)}\quad\text{vs}\quad H_1:\ ${S.th}${ALT[k][0]}${tq(t0)}\)`;
+  const q2=c.part===1?(c.param==='pi'?'Históricamente, la proporción de pedidos que llega con retraso es de <b>'+pct(t0,0)+'</b>, pero se cree que este número cambió.':'Se quiere evaluar si <b>el tiempo medio de entrega de los pedidos es menor a '+f(t0,0)+' minutos</b>.'):'La gerencia pregunta: <b>¿hay evidencia de que '+h1Text(c)+'?</b>';
+  steps.push({t:'Las hipótesis',intro:'<p class="enun">'+q2+' Selecciona el par de hipótesis que corresponde. Recuerda que H₁ es lo que se quiere demostrar.</p>',
+    items:[it({id:'hyp',kind:'choice',label:'Hipótesis del test',plain:['gt','lt','ne'].map(k=>'H0: '+S.thU+' = '+fq(t0)+' vs H1: '+S.thU+' '+ALT[k][1]+' '+fq(t0)),opts:['gt','lt','ne'].map(hy),ok:['gt','lt','ne'].indexOf(A)})]});
+
+  /* 3 · estadístico */
+  const it3=[];
+  if(c.part===2&&c.param==='mu'&&c.method==='pooled')it3.push(it({id:'sp',kind:'num',label:'Sp',sub:'desviación estándar combinada',v:T.Sp,d:3,tol:0.01}));
+  if(c.part===2&&c.param==='mu'&&c.method==='welch')it3.push(it({id:'g',kind:'num',label:'g',sub:'grados de libertad (antes de truncar)',v:T.g,d:1,tol:1,txt:f(T.g,1)+' → se usa t('+T.dist.df+')'}));
+  it3.push(it({id:'stat',kind:'num',label:F.l+'_obs',sub:'valor observado del estadístico',v:T.stat,d:F.isB?0:3,tol:F.isB?0:0.02}));
+  steps.push({t:'El estadístico del test',intro:'<p>Bajo H₀, el estadístico y su distribución son:</p><div class="math">'+F.st+'</div>'+(c.part===2?'<p class="hint">En el denominador va la CCR estimada: la varianza de pX − pY evaluada en los EMV pX y pY de cada muestra.</p>':'')+'<p>Con la muestra observada, calcula su valor.</p>',items:it3});
+
+  /* 4 · región crítica */
+  const it4=[];const l=F.l;
+  if(F.isB){
+    it4.push(it({id:'rcf',kind:'choice',label:'Forma de la región crítica',opts:[R`\(RC=\{X>c\}\)`,R`\(RC=\{X\lt c\}\)`,R`\(RC=\{X\lt c_1\}\cup\{X>c_2\}\)`],ok:['gt','lt','ne'].indexOf(A)}));
+    const rcTxt=(()=>{const p=[];if(D.L!==null)p.push(D.L>=0?'X ≤ '+D.L:'');if(D.U!==null)p.push(D.U<=c.n?'X ≥ '+D.U:'');return p.filter(Boolean).join(' o ')||'vacía'})();
+    if(A==='ne'){it4.push(it({id:'c1',kind:'num',label:'c₁',sub:'máximo con P(X < c₁ | π₀) ≤ α/2',v:D.L+1,d:0,tol:0}));it4.push(it({id:'c2',kind:'num',label:'c₂',sub:'mínimo con P(X > c₂ | π₀) ≤ α/2',v:D.U-1,d:0,tol:0,txt:'c₂ = '+(D.U-1)+' · RC: '+rcTxt}))}
+    else it4.push(it({id:'crit',kind:'num',label:'c',sub:A==='gt'?'mínimo con P(X > c | π₀) ≤ α':'máximo con P(X < c | π₀) ≤ α',v:A==='gt'?D.U-1:D.L+1,d:0,tol:0,txt:'c = '+(A==='gt'?D.U-1:D.L+1)+' · RC: '+rcTxt}));
+  }else{
+    it4.push(it({id:'rcf',kind:'choice',label:'Forma de la región crítica',plain:['RC = {'+l+' > c}','RC = {'+l+' < -c}','RC = {|'+l+'| > c}'],opts:[R`\(RC=\{\,${l}>c\,\}\)`,R`\(RC=\{\,${l}<-c\,\}\)`,R`\(RC=\{\,|${l}|>c\,\}\)`],ok:['gt','lt','ne'].indexOf(A)}));
+    const nm=F.isT?'t_{'+tq(A==='ne'?1-a/2:1-a)+',\\,'+T.dist.df+'}':'z_{'+tq(A==='ne'?1-a/2:1-a)+'}';
+    it4.push(it({id:'crit',kind:'num',label:'Valor crítico c',sub:'percentil de la distribución bajo H₀',v:T.q,d:3,tol:0.01,txt:R`\(c=${nm}=${tx(T.q,3)}\)`}));
+  }
+  steps.push({t:'La región crítica',intro:'<p>Con un nivel de significancia <b>α = '+fq(a)+'</b>, determina la forma de la región crítica y su valor crítico'+(F.isT?' (ν son los grados de libertad de la t del paso 3)':'')+'.</p>',items:it4});
+
+  /* 5 · errores */
+  const it5=[];
+  it5.push(it({id:'alpha',kind:'num',label:F.isB?'α real':'α',sub:'P(error tipo I)',v:F.isB?D.alphaReal:a,d:4,tol:F.isB?0.002:0.0005}));
+  const pr=D.rej(th1);
+  const t1U=c.part===1?(c.param==='pi'?'π₁':'μ₁'):'δ₁';
+  if(H0)it5.push(it({id:'ath',kind:'num',label:'α('+t1U+')',sub:t1U+' está dentro de H₀: P(rechazar H₀)',v:pr,d:4,tol:Math.max(0.004,0.05*pr)}));
+  else it5.push(it({id:'beta',kind:'num',label:'β('+t1U+')',sub:'P(error tipo II)',v:1-pr,d:4,tol:Math.max(0.01,0.03*(1-pr))}));
+  let truthTxt;
+  if(c.part===1)truthTxt=c.param==='pi'?'π₁ = '+f(th1,3):'μ₁ = '+f(th1,1)+' min, con σ = 9 min';
+  else truthTxt=c.param==='mu'?'μX − μY = δ₁ = '+f(th1,2)+' min (μX = '+f(c.tr.muX,1)+', μY = '+f(c.tr.muY,1)+'), con σX = '+f(c.tr.sX,1)+' y σY = '+f(c.tr.sY,1)+' min':'πX = '+f(c.tr.piX,3)+' y πY = '+f(c.tr.piY,3)+' (δ₁ = '+f(th1,3)+')';
+  const intro5='<div class="fgroup e1"><span class="t">Error tipo I: rechazar H₀ siendo verdadera</span><div class="math">'+F.e1+'</div></div>'+
+    '<div class="fgroup e2"><span class="t">Error tipo II: no rechazar H₀ siendo falsa</span><div class="math">'+F.e2+'</div>'+
+    (F.F2?'<p><b>Fórmula a la que debes llegar en este caso:</b></p><div class="math">\\['+F.F2.bf+'\\]\\[\\text{donde }'+F.F2.cdef+'\\]</div>'+
+      '<div class="note"><b>Desarrollo en tu hoja.</b> Parte de la definición de β, usa la región crítica del paso 4 escrita en la escala de '+S.estU+' y la distribución de '+S.estU+' cuando el parámetro vale su valor verdadero, y muestra cómo se llega a esta fórmula. Luego reemplaza los datos y calcula β.</div>':'')+
+    (F.notes.length?'<p class="hint">'+F.notes.join(' ')+'</p>':'')+'</div>'+
+    '<p>Suponga que en realidad <b>'+truthTxt+'</b>. '+(H0?'Ese valor está dentro de H₀, así que no existe error tipo II: calcula la probabilidad de rechazar α('+t1U+') con la misma fórmula y muestra que es menor o igual que α.':'Calcula las probabilidades de error.')+'</p>';
+  if(c.part===1)steps.push({t:'Las probabilidades de error',intro:intro5,items:it5});
+
+  /* 6 · conclusión */
+  const h1=h1Text(c);
+  const it6=[it({id:'dec',kind:'choice',label:'Decisión',opts:['Se rechaza H₀','No se rechaza H₀'],ok:T.reject?0:1}),
+    it({id:'conc',kind:'choice',label:'Conclusión para la gerencia',opts:['Con un riesgo α = '+fq(a)+', hay evidencia suficiente para afirmar que '+h1+'.','Con un riesgo α = '+fq(a)+', no hay evidencia suficiente para afirmar que '+h1+'.','Queda demostrado que H₀ es verdadera, con probabilidad 1 − α = '+fq(1-a)+'.'],ok:T.reject?0:1})];
+  steps.push({t:'La conclusión',intro:'<p>Compara el estadístico observado con la región crítica y concluye en el lenguaje del negocio.</p>',items:it6});
+  return steps;
+}
+
+
+function itemHTML(o){
+  const an=W().ans[o.id];let body;
+  if(o.kind==='choice')body='<div class="seg col opts">'+o.opts.map((t,i)=>'<button type="button" data-pick="'+o.id+'" data-i="'+i+'"'+(an&&an.i===i?' aria-pressed="true"':'')+'>'+t+'</button>').join('')+'</div>';
+  else{const raw=W().draft[o.id]!==undefined?W().draft[o.id]:'';body='<input type="text" inputmode="decimal" id="in-'+o.id+'" data-draft="'+o.id+'" aria-label="Tu valor para '+o.label+'" placeholder="tu resultado" value="'+String(raw).replace(/"/g,'')+'">'}
+  return '<div class="item'+(o.kind==='choice'?' wide':'')+'"><div class="q"><b>'+o.label+'</b>'+(o.sub?'<small>'+o.sub+'</small>':'')+'</div><div class="in">'+body+'</div></div>';
+}
+function renderSteps(){
+  const steps=buildSteps(CUR);ITEMS={};steps.forEach(s=>s.items.forEach(o=>ITEMS[o.id]=o));
+  $('steps').innerHTML=steps.map((s,i)=>'<section class="panel step"><div class="row" style="justify-content:space-between"><h2><span class="sn">'+(i+1)+'</span>'+s.t+'</h2>'+(s.btn?'<button type="button" class="btn ghost" id="b-new">Otra muestra</button>':'')+'</div>'+s.intro+(s.items.length?'<div class="items">'+s.items.map(itemHTML).join('')+'</div>':'')+'</section>').join('');
+  typeset([$('steps')]);
+}
+function answered(){return Object.keys(ITEMS).filter(k=>ITEMS[k].kind==='choice'?!!W().ans[k]:(W().draft[k]||'').trim()!=='').length}
+function renderSave(){
+  $('save-title').textContent='Guardar respuestas · '+TABNAME[TAB];
+  $('progress').textContent='Has respondido '+answered()+' de '+Object.keys(ITEMS).length+' preguntas de esta parte.';
+  const sv=SAVED[TAB];
+  $('save-status').textContent=sv?(W().dirty?'Tienes cambios sin guardar desde la última vez.':'Respuestas guardadas a las '+new Date(sv.guardado).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})+'.'):'';
+  $('b-save').textContent=TAB<3?'Guardar respuestas y seguir a la parte '+(TAB+1):'Guardar respuestas';
+  $('final').hidden=TAB!==3;
+  const miss=[1,2,3].filter(k=>!SAVED[k]);
+  $('parts-status').textContent=miss.length?'Falta guardar: '+miss.map(k=>'parte '+k+' ('+TABNAME[k].toLowerCase()+')').join(', ')+'.':'Las tres partes están guardadas.';
+}
+function parseNum(s){s=String(s).trim().replace(/\s/g,'').replace('−','-');if(/^-?\d{1,3}(\.\d{3})+,\d+$/.test(s))s=s.replace(/\./g,'');s=s.replace(',','.');return parseFloat(s)}
+$('steps').addEventListener('input',e=>{const id=e.target.dataset&&e.target.dataset.draft;if(id){W().draft[id]=e.target.value;W().dirty=true;renderSave()}});
+$('steps').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.pick){W().ans[b.dataset.pick]={i:+b.dataset.i};W().dirty=true;renderSteps();renderSave();return}
+});
+$('b-save').addEventListener('click',()=>{
+  const resp={};Object.keys(ITEMS).forEach(k=>{const o=ITEMS[k];resp[k]=o.kind==='choice'?(W().ans[k]?W().ans[k].i:null):(W().draft[k]||'').trim()});
+  SAVED[TAB]={config:clone(CUR.c),muestra:clone(CUR.sm),respuestas:resp,guardado:new Date().toISOString()};W().dirty=false;
+  if(TAB<3){TAB++;render();window.scrollTo({top:0,behavior:'smooth'})}else{syncControls();renderSave();$('st-m1').focus()}
+});
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{TAB=+b.dataset.t;render()}));
+
+/* ================= Entrega ================= */
+function slug(s){return (s||'estudiante').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,40)||'estudiante'}
+let DL=null,DLready=false;
+(async()=>{try{DL=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){DL=null}DLready=true})();
+function status(t){$('send-status').textContent=t}
+function readySubmission(){
+  const miss=[1,2,3].filter(k=>!SAVED[k]);
+  if(miss.length){status('Antes de entregar, guarda '+miss.map(k=>'la parte '+k).join(', ')+'.');return null}
+  const mem=['st-m1','st-m2','st-m3'].map(id=>$(id).value.trim()).filter(Boolean);
+  if(!mem.length){status('Escribe al menos un integrante del grupo antes de entregar.');$('st-m1').focus();return null}
+  if([1,2,3].some(k=>WORK[k].dirty))status('Ojo: tienes cambios sin guardar; la entrega usa lo último que guardaste.');
+  return{app:'practica-test-hipotesis',version:2,estudiante:mem.join(' / '),integrantes:mem,fecha:new Date().toISOString(),partes:clone(SAVED)};
+}
+const csvq=v=>{v=v===null||v===undefined?'':String(v);return /[";\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function toCSV(sub){
+  const rows=[['Integrantes','Fecha','Parte','Id','Pregunta','Respuesta','Respuesta (texto)','Datos']];
+  [1,2,3].forEach(k=>{const p=sub.partes[k];if(!p)return;const items=[];buildSteps(computeCase(p.config)).forEach(s=>s.items.forEach(o=>items.push(o)));
+    items.forEach((o,ix)=>{const r=p.respuestas[o.id];let resp='',txt='';
+      if(o.kind==='choice'){if(r!==null&&r!==undefined){resp=r+1;txt=(o.plain||o.opts)[r]}}else{resp=r||'';txt=r||''}
+      rows.push([sub.estudiante,sub.fecha,k+' · '+TABNAME[k],o.id,o.label,resp,txt,ix===0?JSON.stringify({config:p.config,muestra:p.muestra}):''])})});
+  return '﻿'+rows.map(r=>r.map(csvq).join(';')).join('\r\n');
+}
+$('b-dl').addEventListener('click',async()=>{
+  const sub=readySubmission();if(!sub)return;let base=$('st-file').value.trim().replace(/\.csv$/i,'');const fn=(slug(base)||('entrega_'+slug(sub.estudiante)))+'.csv',csv=toCSV(sub);
+  if(!DLready){try{DL=window.claude&&claude.use?await claude.use('downloads'):null}catch(e){DL=null}DLready=true}
+  if(DL){try{await DL.save({filename:fn,data:csv});status('Entrega descargada como '+fn+'. Súbela a la tarea en Canvas.');return}
+    catch(e){if(e&&e.code==='declined'){status('Descarga cancelada.');return}}}
+  try{const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+    status('Se inició la descarga de '+fn+'. Revisa tu carpeta de descargas.')}
+  catch(e){status('No se pudo descargar en este navegador. Prueba abriendo la página en el computador.')}
+});
+
+
+
+/* ================= Controles ================= */
+function seg(id,fn){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;fn(b.dataset.v);render()})}
+seg('t2-mmu',v=>CFG[2].method=v);
+seg('t3-alt',v=>CFG[3].alt=v);
+$('nojs').hidden=true;
+render();
+</script>
+
+</body>
+</html>
